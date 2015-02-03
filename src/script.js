@@ -7,7 +7,7 @@
     height   = 283 - margin.top - margin.bottom,
     height2  = 283 - margin2.top - margin2.bottom;
 
-  var parseDate = d3.time.format('%d/%m/%Y').parse,
+  var parseDate = d3.time.format('%Y-%m-%d').parse,
     bisectDate = d3.bisector(function(d) { return d.date; }).left,
     legendFormat = d3.time.format('%b %d, %Y');
 
@@ -77,7 +77,7 @@
 
   legend.append('text')
     .attr('class', 'chart__symbol')
-    .text('NASDAQ: GOOGL')
+    .text('NASDAQ: AAPL')
 
   var rangeSelection =  legend
     .append('g')
@@ -201,8 +201,9 @@
       var i = bisectDate(data, x0, 1);
       var d0 = data[i - 1];
       var d1 = data[i];
+      console.log(data, i);
       var d = x0 - d0.date > d1.date - x0 ? d1 : d0;
-      helperText.text(legendFormat(new Date(d.date)) + ' - Price: ' + d.price + ' Avg: ' + d.average);
+      helperText.text(legendFormat(new Date(d.date)) + ' - SentimentHigh: ' + d.price + ' SentimentLow: ' + d.average);
       priceTooltip.attr('transform', 'translate(' + x(d.date) + ',' + y(d.price) + ')');
       averageTooltip.attr('transform', 'translate(' + x(d.date) + ',' + y(d.average) + ')');
     }
@@ -271,9 +272,9 @@
   function type(d) {
     return {
       date    : parseDate(d.Date),
-      price   : +d.Close,
-      average : +d.Average,
-      volume : +d.Volume,
+      price   : +d['Sentiment High'],
+      average : +d['Sentiment Low'],
+      volume : +d['News Volume'],
     }
   }
 }());
