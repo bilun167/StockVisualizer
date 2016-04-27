@@ -232,8 +232,8 @@
       if (!brush.empty()) {
         x.domain(brush.empty() ? x2.domain() : brush.extent());
         y.domain([
-          d3.min(data.map(function(d) { return (d.date >= ext[0] && d.date <= ext[1]) ? d.average : max; })),
-          d3.max(data.map(function(d) { return (d.date >= ext[0] && d.date <= ext[1]) ? d.average : min; }))
+          d3.min(data.map(function(d) { return (d.date >= ext[0] && d.date <= ext[1]) ? d.low : max; })),
+          d3.max(data.map(function(d) { return (d.date >= ext[0] && d.date <= ext[1]) ? d.high : min; }))
         ]);
         range.text(legendFormat(new Date(ext[0])) + ' - ' + legendFormat(new Date(ext[1])))
         focusGraph.attr('x', function(d, i) { return x(d.date); });
@@ -249,7 +249,7 @@
       focus.select('.y.axis').call(yAxis);
     }
 
-    var dateRange = ['1w', '1m', '3m', '6m', '1y', '5y']
+    var dateRange = ['1w', '1m', '3m', '6m', '1y', '3y']
     for (var i = 0, l = dateRange.length; i < l; i ++) {
       var v = dateRange[i];
       rangeSelection
@@ -279,8 +279,8 @@
       if (range === '1y')
         ext.setFullYear(ext.getFullYear() - 1)
 
-      if (range === '5y')
-        ext.setFullYear(ext.getFullYear() - 5)
+      if (range === '3y')
+        ext.setFullYear(ext.getFullYear() - 3)
 
       brush.extent([ext, today])
       brushed()
