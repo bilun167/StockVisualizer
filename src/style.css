@@ -29,24 +29,33 @@ svg {
   stroke-width: 1.2px;
   clip-path: url("#clip");
 }
-.chart__price--focus {
+.chart__avg--focus {
   stroke-width: 2px;
   stroke: #2980b9;
 }
-.chart__average--focus {
+.chart__low--focus {
   stroke-width: 2px;
   stroke: #f00;
+  opacity: 0.3;
+}
+.chart__high--focus {
+  stroke-width: 2px;
+  stroke: #f50;
   opacity: 0.3;
 }
 .chart__overlay {
   opacity: 0;
   pointer-events: all;
 }
-.chart__tooltip--price {
+.chart__tooltip--avg {
   fill: none;
   stroke: #f00;
 }
-.chart__tooltip--average {
+.chart__tooltip--low {
+  fill: none;
+  stroke: #f00;
+}
+.chart__tooltip--high {
   fill: none;
   stroke: #f00;
 }

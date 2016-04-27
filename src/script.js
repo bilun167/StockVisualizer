@@ -22,21 +22,26 @@
     xAxis2  = d3.svg.axis().scale(x2).orient('bottom'),
     yAxis   = d3.svg.axis().scale(y).orient('left');
 
-  var priceLine = d3.svg.line()
+  var highLine = d3.svg.line()
     .interpolate('monotone')
     .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.price); });
+    .y(function(d) { return y(d.high); });
+
+  var lowLine = d3.svg.line()
+    .interpolate('monotone')
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.low); });
 
   var avgLine = d3.svg.line()
-    .interpolate('monotone')
-    .x(function(d) { return x(d.date); })
-    .y(function(d) { return y(d.average); });
+      .interpolate('monotone')
+      .x(function(d) { return x(d.date); })
+      .y(function(d) { return y(d.average); });
 
   var area2 = d3.svg.area()
     .interpolate('monotone')
     .x(function(d) { return x2(d.date); })
     .y0(height2)
-    .y1(function(d) { return y2(d.price); });
+    .y1(function(d) { return y2(d.average); });
 
   var svg = d3.select('body').append('svg')
     .attr('class', 'chart')
@@ -92,13 +97,13 @@
     var xRange = d3.extent(data.map(function(d) { return d.date; }));
 
     x.domain(xRange);
-    y.domain(d3.extent(data.map(function(d) { return d.price; })));
-    y3.domain(d3.extent(data.map(function(d) { return d.price; })));
+    y.domain(d3.extent(data.map(function(d) { return d.average; })));
+    y3.domain(d3.extent(data.map(function(d) { return d.average; })));
     x2.domain(x.domain());
     y2.domain(y.domain());
 
-    var min = d3.min(data.map(function(d) { return d.price; }));
-    var max = d3.max(data.map(function(d) { return d.price; }));
+    var min = d3.min(data.map(function(d) { return d.average; }));
+    var max = d3.max(data.map(function(d) { return d.average; }));
 
     var range = legend.append('text')
       .text(legendFormat(new Date(xRange[0])) + ' - ' + legendFormat(new Date(xRange[1])))
@@ -111,15 +116,20 @@
         .tickSize(-width, 0, 0)
         .tickFormat(''));
 
-    var averageChart = focus.append('path')
+    var lowChart = focus.append('path')
         .datum(data)
-        .attr('class', 'chart__line chart__average--focus line')
-        .attr('d', avgLine);
+        .attr('class', 'chart__line chart__low--focus line')
+        .attr('d', lowLine);
 
-    var priceChart = focus.append('path')
+    var highChart = focus.append('path')
         .datum(data)
-        .attr('class', 'chart__line chart__price--focus line')
-        .attr('d', priceLine);
+        .attr('class', 'chart__line chart__high--focus line')
+        .attr('d', highLine);
+
+    var avgChart = focus.append('path')
+        .datum(data)
+        .attr('class', 'chart__line chart__avg--focus line')
+        .attr('d', avgLine);
 
     focus.append('g')
         .attr('class', 'x axis')
@@ -136,9 +146,9 @@
       .enter().append('rect')
         .attr('class', 'chart__bars')
         .attr('x', function(d, i) { return x(d.date); })
-        .attr('y', function(d) { return 155 - y3(d.price); })
+        .attr('y', function(d) { return 155 - y3(d.average); })
         .attr('width', 1)
-        .attr('height', function(d) { return y3(d.price); });
+        .attr('height', function(d) { return y3(d.average); });
 
     var helper = focus.append('g')
       .attr('class', 'chart__helper')
@@ -147,17 +157,23 @@
 
     var helperText = helper.append('text')
 
-    var priceTooltip = focus.append('g')
-      .attr('class', 'chart__tooltip--price')
+    var highTooltip = focus.append('g')
+      .attr('class', 'chart__tooltip--high')
       .append('circle')
       .style('display', 'none')
       .attr('r', 2.5);
 
-    var averageTooltip = focus.append('g')
-      .attr('class', 'chart__tooltip--average')
+    var lowTooltip = focus.append('g')
+      .attr('class', 'chart__tooltip--low')
       .append('circle')
       .style('display', 'none')
       .attr('r', 2.5);
+
+    var avgTooltip = focus.append('g')
+        .attr('class', 'chart__tooltip--avg')
+        .append('circle')
+        .style('display', 'none')
+        .attr('r', 2.5);
 
     var mouseArea = svg.append('g')
       .attr('class', 'chart__mouse')
@@ -168,13 +184,15 @@
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
       .on('mouseover', function() {
         helper.style('display', null);
-        priceTooltip.style('display', null);
-        averageTooltip.style('display', null);
+        highTooltip.style('display', null);
+        lowTooltip.style('display', null);
+        avgTooltip.style('display', null);
       })
       .on('mouseout', function() {
         helper.style('display', 'none');
-        priceTooltip.style('display', 'none');
-        averageTooltip.style('display', 'none');
+        highTooltip.style('display', 'none');
+        lowTooltip.style('display', 'none');
+        avgTooltip.style('display', 'none');
       })
       .on('mousemove', mousemove);
 
@@ -203,9 +221,10 @@
       var d1 = data[i];
       console.log(data, i);
       var d = x0 - d0.date > d1.date - x0 ? d1 : d0;
-      helperText.text(legendFormat(new Date(d.date)) + ' - SentimentHigh: ' + d.price + ' SentimentLow: ' + d.average);
-      priceTooltip.attr('transform', 'translate(' + x(d.date) + ',' + y(d.price) + ')');
-      averageTooltip.attr('transform', 'translate(' + x(d.date) + ',' + y(d.average) + ')');
+      helperText.text(legendFormat(new Date(d.date)) + ' - High: ' + d.high + ' Low: ' + d.low + ' Avg: ' + d.average);
+      highTooltip.attr('transform', 'translate(' + x(d.date) + ',' + y(d.high) + ')');
+      lowTooltip.attr('transform', 'translate(' + x(d.date) + ',' + y(d.low) + ')');
+      avgTooltip.attr('transform', 'translate(' + x(d.date) + ',' + y(d.average) + ')');
     }
 
     function brushed() {
@@ -213,8 +232,8 @@
       if (!brush.empty()) {
         x.domain(brush.empty() ? x2.domain() : brush.extent());
         y.domain([
-          d3.min(data.map(function(d) { return (d.date >= ext[0] && d.date <= ext[1]) ? d.price : max; })),
-          d3.max(data.map(function(d) { return (d.date >= ext[0] && d.date <= ext[1]) ? d.price : min; }))
+          d3.min(data.map(function(d) { return (d.date >= ext[0] && d.date <= ext[1]) ? d.average : max; })),
+          d3.max(data.map(function(d) { return (d.date >= ext[0] && d.date <= ext[1]) ? d.average : min; }))
         ]);
         range.text(legendFormat(new Date(ext[0])) + ' - ' + legendFormat(new Date(ext[1])))
         focusGraph.attr('x', function(d, i) { return x(d.date); });
@@ -223,8 +242,9 @@
         focusGraph.attr('width', (40 > days) ? (40 - days) * 5 / 6 : 5)
       }
 
-      priceChart.attr('d', priceLine);
-      averageChart.attr('d', avgLine);
+      highChart.attr('d', highLine);
+      lowChart.attr('d', lowLine);
+      avgChart.attr('d', avgLine);
       focus.select('.x.axis').call(xAxis);
       focus.select('.y.axis').call(yAxis);
     }
@@ -272,8 +292,9 @@
   function type(d) {
     return {
       date    : parseDate(d.Date),
-      price   : +d['Sentiment High'],
-      average : +d['Sentiment Low'],
+      high   : +d['Sentiment High'],
+      low  : +d['Sentiment Low'],
+      average : +d['Sentiment'],
       volume : +d['News Volume'],
     }
   }
